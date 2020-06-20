@@ -1,3 +1,5 @@
+#速度快，准确率低
+
 import numpy as np
 import pandas as pd
 import random
@@ -5,9 +7,25 @@ from sklearn.metrics import *
 from sklearn.model_selection import train_test_split
 
 
-df = pd.read_csv('/Users/macbook/Desktop/New Spam sorting.csv')
-x = np.array(df['Text'].values)
-y = np.array(df['Spam'].values)
+#df = pd.read_csv('/Users/macbook/Desktop/New Spam sorting.csv')
+df = pd.read_csv('/Users/macbook/Desktop/Spam sorting.csv')
+x = np.array(df['text'].values)
+y = np.array(df['spam'].values)
+
+
+print("共有样本：",len(y),"条")
+
+spamNum = 0
+
+for i in range(len(y)):
+    if y[i] == 1:
+        spamNum += 1
+
+print("垃圾邮件所占比例为：",spamNum/len(y))
+
+num = len(y)
+print("y的长度：",num)
+
 
 #打乱数据集
 index = [ i for i in range(len(df))]
@@ -15,67 +33,33 @@ random.shuffle(index)
 x = x[index]
 y = y[index]
 
-# 按顺序将数据集分成10份
+
+# 按顺序将数据集分成4份,共5728条数据，每份为1432条
 data_x1 = []
 data_y1 = []
-for i in range(10):
+for i in range(0,int(num/4)):
     data_x1.append(x[i])
     data_y1.append(y[i])
 # data_x1,data_y1
 
 data_x2 = []
 data_y2 = []
-for i in range(10, 20):
+for i in range(int(num/4),int((num/4)*2)):
     data_x2.append(x[i])
     data_y2.append(y[i])
 
 data_x3 = []
 data_y3 = []
-for i in range(20, 30):
+for i in range(int((num/4)*2),int((num/4)*3)):
     data_x3.append(x[i])
     data_y3.append(y[i])
 
 data_x4 = []
 data_y4 = []
-for i in range(30, 40):
+for i in range((int((num/4)*3)),num):
     data_x4.append(x[i])
     data_y4.append(y[i])
 
-data_x5 = []
-data_y5 = []
-for i in range(40, 50):
-    data_x5.append(x[i])
-    data_y5.append(y[i])
-
-data_x6 = []
-data_y6 = []
-for i in range(50, 60):
-    data_x6.append(x[i])
-    data_y6.append(y[i])
-
-data_x7 = []
-data_y7 = []
-for i in range(60, 70):
-    data_x7.append(x[i])
-    data_y7.append(y[i])
-
-data_x8 = []
-data_y8 = []
-for i in range(70, 80):
-    data_x8.append(x[i])
-    data_y8.append(y[i])
-
-data_x9 = []
-data_y9 = []
-for i in range(80, 90):
-    data_x9.append(x[i])
-    data_y9.append(y[i])
-
-datatest_x10 = []
-datatest_y10 = []
-for i in range(90, 100):
-    datatest_x10.append(x[i])
-    datatest_y10.append(y[i])
 
 
 #将邮件内容转化为小写形式
@@ -94,9 +78,13 @@ def allword(dataset):
 
 #创建词汇表（元素唯一不重复）
 def creatWordSet(dataset):
+
+    n = 0
     WordSet = set([])
     for i in dataset:#list不可hash,使用遍历
         WordSet = WordSet | set(i)
+        n += 1
+    print("n:",n)
     return list(WordSet)
 
 
@@ -128,8 +116,8 @@ def bagOfWordVec(wordlist, dataset):
 def trainNB(trainMatrix, trainCategory):
     # print(trainMatrix[1])
     numWords = len(trainMatrix[0])  # 每条样本的词条数量
-    p0Num = np.zeros(numWords)
-    p1Num = np.zeros(numWords)
+    p0Num = np.ones(numWords)
+    p1Num = np.ones(numWords)
     # print(len(p0Num))
     p0allNum = 0.0
     p1allNum = 0.0
@@ -145,210 +133,222 @@ def trainNB(trainMatrix, trainCategory):
             p0allNum += sum(trainMatrix[i])
     # print(p1allNum,p0allNum)
     # epsilon = 1e-5
-    p1Vec = np.abs(np.log(p1Num / p1allNum))
-    p0Vec = np.abs(np.log(p0Num / p0allNum))
-    # p1Vec = np.log(p1Num/p1allNum)
-    # p0Vec = np.log(p0Num/p0allNum)
-    # p1Vec = p1Num/p1allNum
-    # p0Vec = p0Num/p0allNum
+    p1Vec = np.log(p1Num / p1allNum)
+    p0Vec = np.log(p0Num / p0allNum)
+    #p1Vec = np.log(p1Num) - np.log(p1allNum)
+    #p0Vec = np.log(p0Num) - np.log(p0allNum)
     return p1Vec, p0Vec
 
 
 def Classify(p1Vec, p0Vec, pc1, testlist):
+    #print(len(testlist))
+    #print(len(p1Vec))
+    '''
+    print(type(testlist))
+    print(type(p1Vec))
+    print(type(p0Vec))
+    print(type(pc1))
+    print(pc1)
+    '''
+    #print(testlist[0])
     p1 = sum(testlist * p1Vec) + np.log(pc1)
     p0 = sum(testlist * p0Vec) + np.log(1 - pc1)
 
+    #print(type(p1))
+    #print("p1:",p1)
+    #print("p0:",p0)
 
-    if np.all(p1 > p0):
+    if p1 > p0:
         return 1
     else:
         return 0
 
-#处理测试集数据
-lower_test = creatLowerset(datatest_x10)
-word_test = allword(lower_test)
+
 
 #将训练集数据转化为小写形式
 lower1 = creatLowerset(data_x1)
 lower2 = creatLowerset(data_x2)
 lower3 = creatLowerset(data_x3)
 lower4 = creatLowerset(data_x4)
-lower5 = creatLowerset(data_x5)
-lower6 = creatLowerset(data_x6)
-lower7 = creatLowerset(data_x7)
-lower8 = creatLowerset(data_x8)
-lower9 = creatLowerset(data_x9)
+print("小写：")
+print(len(lower1))
+print(len(lower2))
+print(len(lower3))
+print(len(lower4))
+
 
 #将训练集数据分离成单词形式
 word1 = allword(lower1)
 word2 = allword(lower2)
 word3 = allword(lower3)
 word4 = allword(lower4)
-word5 = allword(lower5)
-word6 = allword(lower6)
-word7 = allword(lower7)
-word8 = allword(lower8)
-word9 = allword(lower9)
+print("单词形式：")
+print(len(word1))
+print(len(word2))
+print(len(word3))
+print(len(word4))
+
+
 
 #创建词汇表
 wordset1 = creatWordSet(word1)
 wordset2 = creatWordSet(word2)
 wordset3 = creatWordSet(word3)
 wordset4 = creatWordSet(word4)
-wordset5 = creatWordSet(word5)
-wordset6 = creatWordSet(word6)
-wordset7 = creatWordSet(word7)
-wordset8 = creatWordSet(word8)
-wordset9 = creatWordSet(word9)
-
-#计算先验概率
-pc1_1 = ClassProbability(data_y1)
-pc1_2 = ClassProbability(data_y2)
-pc1_3 = ClassProbability(data_y3)
-pc1_4 = ClassProbability(data_y4)
-pc1_5 = ClassProbability(data_y5)
-pc1_6 = ClassProbability(data_y6)
-pc1_7 = ClassProbability(data_y7)
-pc1_8 = ClassProbability(data_y8)
-pc1_9 = ClassProbability(data_y9)
-
-#训练集转化为词向量
-veclist1 = bagOfWordVec(wordset1,word1)
-veclist2 = bagOfWordVec(wordset2,word2)
-veclist3 = bagOfWordVec(wordset3,word3)
-veclist4 = bagOfWordVec(wordset4,word4)
-veclist5 = bagOfWordVec(wordset5,word5)
-veclist6 = bagOfWordVec(wordset6,word6)
-veclist7 = bagOfWordVec(wordset7,word7)
-veclist8 = bagOfWordVec(wordset8,word8)
-veclist9 = bagOfWordVec(wordset9,word9)
-
-#测试集转化为词向量
-testVec1 = bagOfWordVec(wordset1,word_test)
-testVec2 = bagOfWordVec(wordset2,word_test)
-testVec3 = bagOfWordVec(wordset3,word_test)
-testVec4 = bagOfWordVec(wordset4,word_test)
-testVec5 = bagOfWordVec(wordset5,word_test)
-testVec6 = bagOfWordVec(wordset6,word_test)
-testVec7 = bagOfWordVec(wordset7,word_test)
-testVec8 = bagOfWordVec(wordset8,word_test)
-testVec9 = bagOfWordVec(wordset9,word_test)
-
-#计算条件概率
-xp1_1,xp0_1 = trainNB(veclist1,data_y1)
-xp1_2,xp0_2 = trainNB(veclist2,data_y2)
-xp1_3,xp0_3 = trainNB(veclist3,data_y3)
-xp1_4,xp0_4 = trainNB(veclist4,data_y4)
-xp1_5,xp0_5 = trainNB(veclist5,data_y5)
-xp1_6,xp0_6 = trainNB(veclist6,data_y6)
-xp1_7,xp0_7 = trainNB(veclist7,data_y7)
-xp1_8,xp0_8 = trainNB(veclist8,data_y8)
-xp1_9,xp0_9 = trainNB(veclist9,data_y9)
-
-'''
-def testing(xp1,xp0,pc1,testVec,data_y):
-    y_predict = []
-    for i in range(len(testVec)):
-        y_predict.append(Classify(xp1,xp0,pc1,testVec))
-
-    #accuracy = accuracy_score(y_test, y_predict)
-    return accuracy_score(data_y, y_predict)
-
-accuracy1 = testing(xp1_1,xp0_1,pc1_1,testVec1,data_y1)
-'''
 
 
+
+#测试集为1
+X_test1 = word1
+X_train1 = word2 + word3 + word4
+Y_test1 = data_y1
+Y_train1 = data_y2 + data_y3 + data_y4
+
+print("-------------------")
+print(len(wordset2))
+print(len(wordset3))
+print(len(wordset4))
+print("-------------------")
+
+vocabset1 = wordset2 + wordset3 + wordset4
+
+print("vocabset1:", len(vocabset1))
+
+vocabulary1 = creatWordSet(vocabset1)
+
+print("vocablary1:", len(vocabulary1))
+
+pc1_1 = ClassProbability(Y_train1)
+
+print("pc1:",pc1_1)
+
+train_vec1 = bagOfWordVec(vocabulary1,X_train1)
+test_vec1 = bagOfWordVec(vocabulary1,X_test1)
+
+xp1_1,xp0_1 = trainNB(train_vec1,Y_train1)
 
 def testing1():
     y_predict = []
-    for i in range(len(testVec1)):
-        y_predict.append(Classify(xp1_1,xp0_1,pc1_1,testVec1))
+    for i in range(len(test_vec1)):
+        y_predict.append(Classify(xp1_1,xp0_1, pc1_1, test_vec1[i]))
 
-    #accuracy = accuracy_score(y_test, y_predict)
+    # accuracy = accuracy_score(y_test, y_predict)
+    print("1:", y_predict)
+    print("1:", data_y1)
     return accuracy_score(data_y1, y_predict)
 
 
 
+
+#测试集为2
+X_test2 = word2
+X_train2 = word1 + word3 + word4
+Y_test2 = data_y2
+Y_train2 = data_y1 + data_y3 + data_y4
+vocabset2 = wordset1 + wordset3 + wordset4
+vocabulary2 = creatWordSet(vocabset2)
+
+print("vocablary2:", len(vocabulary2))
+
+pc1_2 = ClassProbability(Y_train2)
+
+print("pc2:",pc1_2)
+
+train_vec2 = bagOfWordVec(vocabulary2,X_train2)
+test_vec2 = bagOfWordVec(vocabulary2,X_test2)
+
+xp1_2,xp0_2 = trainNB(train_vec2,Y_train2)
+
 def testing2():
     y_predict = []
-    for i in range(len(testVec2)):
-        y_predict.append(Classify(xp1_2,xp0_2,pc1_2,testVec2))
+    for i in range(len(test_vec2)):
+        y_predict.append(Classify(xp1_2,xp0_2, pc1_2, test_vec2[i]))
 
-    #accuracy = accuracy_score(y_test, y_predict)
+    # accuracy = accuracy_score(y_test, y_predict)
+    print("2:", y_predict)
+    print("2:", data_y2)
     return accuracy_score(data_y2, y_predict)
 
 
+
+
+#测试集为3
+X_test3 = word3
+X_train3 = word1 + word2 + word4
+Y_test3 = data_y3
+Y_train3 = data_y1 + data_y2 + data_y4
+vocabset3 = wordset1 + wordset2 + wordset4
+vocabulary3 = creatWordSet(vocabset3)
+
+print("vocablary3:", len(vocabulary3))
+
+pc1_3 = ClassProbability(Y_train3)
+
+print("pc3:",pc1_3)
+
+train_vec3 = bagOfWordVec(vocabulary3,X_train3)
+test_vec3 = bagOfWordVec(vocabulary3,X_test3)
+
+xp1_3,xp0_3 = trainNB(train_vec3,Y_train3)
+
 def testing3():
     y_predict = []
-    for i in range(len(testVec3)):
-        y_predict.append(Classify(xp1_3,xp0_3,pc1_3,testVec3))
+    for i in range(len(test_vec3)):
+        y_predict.append(Classify(xp1_3,xp0_3, pc1_3, test_vec3[i]))
 
-    #accuracy = accuracy_score(y_test, y_predict)
+    # accuracy = accuracy_score(y_test, y_predict)
+    print("3:", y_predict)
+    print("3:", data_y3)
     return accuracy_score(data_y3, y_predict)
 
 
+
+
+#测试集为4
+X_test4 = word4
+X_train4 = word1 + word2 + word3
+Y_test4 = data_y4
+Y_train4 = data_y1 + data_y2 + data_y3
+vocabset4 = wordset1 + wordset2 + wordset3
+vocabulary4 = creatWordSet(vocabset4)
+
+print("vocablary4:", len(vocabulary4))
+
+pc1_4 = ClassProbability(Y_train4)
+
+print("pc4:",pc1_4)
+
+train_vec4 = bagOfWordVec(vocabulary4,X_train4)
+test_vec4 = bagOfWordVec(vocabulary4,X_test4)
+
+xp1_4,xp0_4 = trainNB(train_vec4,Y_train4)
+
 def testing4():
     y_predict = []
-    for i in range(len(testVec4)):
-        y_predict.append(Classify(xp1_4,xp0_4,pc1_4,testVec4))
+    for i in range(len(test_vec4)):
+        y_predict.append(Classify(xp1_4,xp0_4, pc1_4, test_vec4[i]))
 
-    #accuracy = accuracy_score(y_test, y_predict)
+    # accuracy = accuracy_score(y_test, y_predict)
+    print("4:", y_predict)
+    print("4:", data_y4)
     return accuracy_score(data_y4, y_predict)
 
 
-def testing5():
-    y_predict = []
-    for i in range(len(testVec5)):
-        y_predict.append(Classify(xp1_5,xp0_5,pc1_5,testVec5))
-
-    #accuracy = accuracy_score(y_test, y_predict)
-    return accuracy_score(data_y5, y_predict)
-
-
-def testing6():
-    y_predict = []
-    for i in range(len(testVec6)):
-        y_predict.append(Classify(xp1_6,xp0_6,pc1_6,testVec6))
-
-    #accuracy = accuracy_score(y_test, y_predict)
-    return accuracy_score(data_y6, y_predict)
-
-
-def testing7():
-    y_predict = []
-    for i in range(len(testVec7)):
-        y_predict.append(Classify(xp1_7,xp0_7,pc1_7,testVec7))
-
-    #accuracy = accuracy_score(y_test, y_predict)
-    return accuracy_score(data_y7, y_predict)
-
-
-def testing8():
-    y_predict = []
-    for i in range(len(testVec8)):
-        y_predict.append(Classify(xp1_8,xp0_8,pc1_8,testVec8))
-
-    #accuracy = accuracy_score(y_test, y_predict)
-    return accuracy_score(data_y8, y_predict)
-
-
-def testing9():
-    y_predict = []
-    for i in range(len(testVec9)):
-        y_predict.append(Classify(xp1_9,xp0_9,pc1_9,testVec9))
-
-    #accuracy = accuracy_score(y_test, y_predict)
-    return accuracy_score(data_y9, y_predict)
 
 accuracy1 = testing1()
 accuracy2 = testing2()
 accuracy3 = testing3()
 accuracy4 = testing4()
-accuracy5 = testing5()
-accuracy6 = testing6()
-accuracy7 = testing7()
-accuracy8 = testing8()
-accuracy9 = testing9()
 
-accuracy = (accuracy1+accuracy2+accuracy3+accuracy4+accuracy5+accuracy6+accuracy7+accuracy8+accuracy9)/9
-print(accuracy)
+accuracy = (accuracy1 + accuracy2 + accuracy3 + accuracy4)/4
+
+print("------------------------------------")
+
+print("accuracy1:", accuracy1)
+print("accuracy2:", accuracy2)
+print("accuracy3:", accuracy3)
+print("accuracy4:", accuracy4)
+
+print("------------------------------------")
+
+print("accuracy:", accuracy)
