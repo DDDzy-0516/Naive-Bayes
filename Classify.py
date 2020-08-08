@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import random
+import re
 
 
 
@@ -57,6 +58,13 @@ for i in range((int((num/4)*3)),num):
     data_x4.append(x[i])
     data_y4.append(y[i])
 
+#除去文本中的特殊字符
+def remove(dataset):
+    lists_new = []
+    for list in dataset:
+        string = re.sub("[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）]+", " " , list)
+        lists_new.append(string)
+    return lists_new
 
 
 #将邮件内容转化为小写形式
@@ -197,9 +205,15 @@ def testing1():
     Y_train = data_y2 + data_y3 + data_y4
 
 
+    #将测试集和训练集中的特殊字符删除
+    remove_test1 = remove(data_x1)
+    remove_train1 = remove(X_train)
+
+
     #将测试集和训练集转化成小写形式
-    lower_test = creatLowerset(data_x1)
-    lower_train = creatLowerset(X_train)
+    lower_test = creatLowerset(remove_test1)
+    lower_train = creatLowerset(remove_train1)
+
 
     #将测试集和训练集文本内容分离成单词形式
     word_test = allword(lower_test)
@@ -241,9 +255,13 @@ def testing2():
     Y_train = data_y1 + data_y3 + data_y4
 
 
-    #将测试集和训练集转化成小写形式
-    lower_test = creatLowerset(data_x2)
-    lower_train = creatLowerset(X_train)
+    # 将测试集和训练集中的特殊字符删除
+    remove_test2 = remove(data_x2)
+    remove_train2 = remove(X_train)
+
+    # 将测试集和训练集转化成小写形式
+    lower_test = creatLowerset(remove_test2)
+    lower_train = creatLowerset(remove_train2)
 
     #将测试集和训练集文本内容分离成单词形式
     word_test = allword(lower_test)
@@ -285,9 +303,13 @@ def testing3():
     Y_train = data_y1 + data_y2 + data_y4
 
 
-    #将测试集和训练集转化成小写形式
-    lower_test = creatLowerset(data_x3)
-    lower_train = creatLowerset(X_train)
+    # 将测试集和训练集中的特殊字符删除
+    remove_test3 = remove(data_x3)
+    remove_train3 = remove(X_train)
+
+    # 将测试集和训练集转化成小写形式
+    lower_test = creatLowerset(remove_test3)
+    lower_train = creatLowerset(remove_train3)
 
     #将测试集和训练集文本内容分离成单词形式
     word_test = allword(lower_test)
@@ -338,9 +360,13 @@ def testing4():
     Y_train = data_y2 + data_y3 + data_y1
 
 
-    #将测试集和训练集转化成小写形式
-    lower_test = creatLowerset(data_x4)
-    lower_train = creatLowerset(X_train)
+    # 将测试集和训练集中的特殊字符删除
+    remove_test4 = remove(data_x4)
+    remove_train4 = remove(X_train)
+
+    # 将测试集和训练集转化成小写形式
+    lower_test = creatLowerset(remove_test4)
+    lower_train = creatLowerset(remove_train4)
 
     #将测试集和训练集文本内容分离成单词形式
     word_test = allword(lower_test)
